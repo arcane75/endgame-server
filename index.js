@@ -21,6 +21,25 @@ async function run() {
         const database = client.db('endgame');
         const blogsCollection = database.collection('blogs');
 
+        //GET blogs
+        app.get('/blogs', async (req, res) => {
+            console.log(req.query);
+            const cursor = blogsCollection.find({});
+            const page = req.query.page;
+            const size = parseInt(req.query.size);
+            let blogs;
+            // const blogs = await cursor.toArray();
+            const count = await cursor.count();
+            //console.log(count);
+            if (page) {
+                blogs = await cursor.skip(page * size).limit(size).toArray();
+            }
+            else {
+                blogs = await cursor.toArray();
+            }
+
+            res.send({ count, blogs });
+        })
     }
     finally {
         // await client.close();
