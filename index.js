@@ -40,6 +40,25 @@ async function run() {
 
             res.send({ count, blogs });
         })
+
+        // GET Single Blog
+        app.get('/blogs/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('blog', id);
+            const query = { _id: ObjectId(id) };
+            const blog = await blogsCollection.findOne(query);
+            res.json(blog);
+        })
+
+         // add Experience
+         app.post("/addExperience", async (req, res) => {
+            const addExperience = req.body;
+            console.log(addExperience);
+            const result = await blogsCollection.insertOne(addExperience);
+            console.log(result);
+            res.json(result);
+        });
+
     }
     finally {
         // await client.close();
