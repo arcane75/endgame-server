@@ -20,6 +20,7 @@ async function run() {
         console.log("endgame connected");
         const database = client.db('endgame');
         const blogsCollection = database.collection('blogs');
+        const usersCollection = database.collection('users');
 
         //GET blogs
         app.get('/blogs', async (req, res) => {
@@ -58,6 +59,76 @@ async function run() {
             console.log(result);
             res.json(result);
         });
+
+         //GET USER
+         app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ admin: isAdmin });
+        })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            // console.log(result);
+            res.json(result);
+        });
+
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        });
+
+        // Delete 
+        app.delete("/deleteExperience/:id", async (req, res) => {
+            // console.log(req.params.id);
+            const result = await blogsCollection.deleteOne({
+                _id: ObjectId(req.params.id),
+            });
+            res.json(result);
+        });
+
+           //UPDATE API
+           app.put("/updateStatus/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log("updated", id);
+            // console.log(req);
+            const updatedStatus = req.body;
+            // console.log(updatedStatus);
+
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: updatedStatus.status
+                },
+            };
+            const result = await blogsCollection.updateOne(filter, updateDoc, options);
+            // console.log('updated', id, req);
+            res.json(result);
+
+        })
+
+        // Admin Set
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            // console.log(user);
+            const filter = { email: user.email };
+            const updateDoc = { $set: { role: 'admin' } };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.json(result);
+
+        })
+
 
     }
     finally {
