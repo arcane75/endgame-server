@@ -28,18 +28,37 @@ async function run() {
             const cursor = blogsCollection.find({});
             const page = req.query.page;
             const size = parseInt(req.query.size);
+            const status = req.params.status;
+            const query = { status: status };
+            const currentStatus = await blogsCollection.findOne(query);
+            let isStatus = false;
+            if (currentStatus?.status === 'approved') {
+                isStatus = true;
+            }
             let blogs;
             // const blogs = await cursor.toArray();
             const count = await cursor.count();
             //console.log(count);
-            if (page) {
+            if (page && (isStatus = true)) {
                 blogs = await cursor.skip(page * size).limit(size).toArray();
             }
             else {
-                blogs = await cursor.toArray();
+                if (isStatus = true) { blogs = await cursor.toArray(); }
             }
 
-            res.send({ count, blogs });
+            res.send({ count, blogs, approved: isStatus });
+        })
+
+        //GET USER
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ admin: isAdmin });
         })
 
         // GET Single Blog
@@ -51,8 +70,8 @@ async function run() {
             res.json(blog);
         })
 
-         // add Experience
-         app.post("/addExperience", async (req, res) => {
+        // add Experience
+        app.post("/addExperience", async (req, res) => {
             const addExperience = req.body;
             console.log(addExperience);
             const result = await blogsCollection.insertOne(addExperience);
@@ -60,17 +79,7 @@ async function run() {
             res.json(result);
         });
 
-         //GET USER
-         app.get('/users/:email', async (req, res) => {
-            const email = req.params.email;
-            const query = { email: email };
-            const user = await usersCollection.findOne(query);
-            let isAdmin = false;
-            if (user?.role === 'admin') {
-                isAdmin = true;
-            }
-            res.json({ admin: isAdmin });
-        })
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -97,8 +106,8 @@ async function run() {
             res.json(result);
         });
 
-           //UPDATE API
-           app.put("/updateStatus/:id", async (req, res) => {
+        //UPDATE API
+        app.put("/updateStatus/:id", async (req, res) => {
             const id = req.params.id;
             console.log("updated", id);
             // console.log(req);
