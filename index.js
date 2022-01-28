@@ -97,8 +97,8 @@ async function run() {
             res.json(result);
         });
 
-        // Delete 
-        app.delete("/deleteExperience/:id", async (req, res) => {
+        // Delete Blogs by Admin
+        app.delete("/deleteBlogs/:id", async (req, res) => {
             // console.log(req.params.id);
             const result = await blogsCollection.deleteOne({
                 _id: ObjectId(req.params.id),
